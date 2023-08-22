@@ -1,5 +1,7 @@
 from .serializers import CustomerSerializer
 from rest_framework import generics, permissions
+from rest_framework.response import Response
+from rest_framework import status
 
 
 class CustomerRegistrationView(generics.CreateAPIView):
@@ -14,10 +16,14 @@ class CustomerRegistrationView(generics.CreateAPIView):
 
         # Set the user's password securely using Django's authentication system
         user.set_password(password)
-        user.save()
+
+        if serializer.is_valid():
+            user.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CustomerDetailView(generics.RetrieveUpdateAPIView):
+class CustomerRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
