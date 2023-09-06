@@ -1,6 +1,8 @@
 import pytest
 
 from rest_framework.exceptions import ErrorDetail
+from activity.models import CustomerActivity
+from users.models import Customer
 
 
 @pytest.mark.django_db
@@ -11,8 +13,12 @@ def test_customer_activity_view_set_delete_data_ok(
     """
     Testing if customer can delete his activity data.
     """
+    customer = Customer.objects.first()
 
-    authenticated_client.post("/api/activities/", activity_passed_data)
+    CustomerActivity.objects.create(
+        customer=customer,
+        **activity_passed_data,
+    )
 
     response = authenticated_client.delete("/api/activities/1/")
 
@@ -28,7 +34,12 @@ def test_customer_activity_view_set_get_data_ok(
     Testing if customer can view his activity data.
     """
 
-    authenticated_client.post("/api/activities/", activity_passed_data)
+    customer = Customer.objects.first()
+
+    CustomerActivity.objects.create(
+        customer=customer,
+        **activity_passed_data,
+    )
 
     response = authenticated_client.get("/api/activities/1/")
     data = response.data
@@ -47,7 +58,12 @@ def test_customer_activity_view_set_get_data_fail(
     """
     Checking that only author can view an activity data.
     """
-    authenticated_client.post("/api/activities/", activity_passed_data)
+    customer = Customer.objects.first()
+
+    CustomerActivity.objects.create(
+        customer=customer,
+        **activity_passed_data,
+    )
 
     response = another_authenticated_client.get("/api/activities/1/")
     data = response.data
@@ -64,7 +80,6 @@ def test_customer_activity_view_set_post_data_ok(
     """
     Testing if customer can post new activity data.
     """
-
     response = authenticated_client.post("/api/activities/", activity_passed_data)
     data = response.data
 
