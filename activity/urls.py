@@ -11,5 +11,5 @@ router.register(r'activities', CustomerActivityViewSet, basename='activity')
 # Delete: HTTP DELETE to /activities/<pk>/
 
 urlpatterns = router.urls + [
-    path('activities-list/', CustomerActivitySummarizeData.as_view(), name='activities-list'),
+    path('customer-activities-list/<pk>/', CustomerActivitySummarizeData.as_view(), name='activities-list'),
 ]

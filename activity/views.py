@@ -1,7 +1,8 @@
 from .models import CustomerActivity
-from .serializers import CustomerActivitySerializer, CustomActivityResponseSerializer
+from .serializers import CustomerActivitySerializer
 from .permissions import IsOwner
 
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
@@ -27,45 +28,32 @@ class CustomerActivityViewSet(
 
 
 class CustomerActivitySummarizeData(APIView):
-    serializer_class = CustomActivityResponseSerializer
-    permission_classes = [IsOwner, IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, pk):
+        customer = get_object_or_404(Customer, pk=pk)
+
+        if request.user != customer:
+            return Response(
+                {"error": "Action not allowed."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         date_str = self.request.query_params.get('date', None)
-        pk = self.request.query_params.get('pk', None)
 
-        if not date_str or not pk:
-            return Response(
-                {"error": "Both 'date' and 'pk' query parameters are required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            customer = Customer.objects.get(pk=pk)
-        except Customer.DoesNotExist:
-            return Response(
-                {"error": "Customer not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        try:
-            date = datetime.strptime(date_str, "%Y-%m-%d")
-        except ValueError:
-            return Response(
-                {"error": "Invalid date format. Please use 'YYYY-MM-DD'."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if date_str:
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+            except ValueError:
+                return Response(
+                    {"error": "Invalid date format. Please use 'YYYY-MM-DD'."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            date = datetime.now()
 
         activities = CustomerActivity.objects.filter(customer=customer, date_add__date=date.date())
-
-        if not activities:
-            return Response(
-                {"error": "No added activities for the chosen date"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
         total_calories = activities.aggregate(total_calories=models.Sum('spent_calories'))['total_calories'] or 0
-
         serialized_activities = CustomerActivitySerializer(activities, many=True)
 
         response_data = {

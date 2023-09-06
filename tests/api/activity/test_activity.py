@@ -130,7 +130,7 @@ def test_customer_activity_summarize_existing_data_ok(
         spent_calories=10,
     )
 
-    response = authenticated_client.get("/api/activities-list/?date=2023-09-01&pk=1")
+    response = authenticated_client.get("/api/customer-activities-list/1/?date=2023-09-01")
     data = response.data
 
     assert data["total_calories"] == 35
@@ -141,15 +141,15 @@ def test_customer_activity_summarize_existing_data_ok(
 
 
 @pytest.mark.django_db
-def test_customer_activity_summarize_existing_data_fail(
+def test_customer_activity_summarize_empty_ok(
         authenticated_client,
 ):
     """
     Testing if Customer gets a proper error if Customer has no existing data for a chosen day.
     """
 
-    response = authenticated_client.get("/api/activities-list/?date=2023-09-01&pk=1")
+    response = authenticated_client.get("/api/customer-activities-list/1/?date=2023-09-01")
     data = response.data
 
-    assert data == {"error": "No added activities for the chosen date"}
-    assert response.status_code == 404
+    assert data["total_calories"] == 0
+    assert data["records"] == []

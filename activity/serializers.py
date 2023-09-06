@@ -17,8 +17,3 @@ class CustomerActivitySerializer(serializers.ModelSerializer):
         )
         activity_note.save()
         return activity_note
-
-
-class CustomActivityResponseSerializer(serializers.Serializer):
-    total_calories = serializers.IntegerField()
-    records = CustomerActivitySerializer(many=True)
