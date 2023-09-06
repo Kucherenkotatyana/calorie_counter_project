@@ -4,6 +4,8 @@ from rest_framework.exceptions import ErrorDetail
 from activity.models import CustomerActivity
 from users.models import Customer
 
+from collections import OrderedDict
+
 
 @pytest.mark.django_db
 def test_customer_activity_view_set_delete_data_ok(
@@ -106,3 +108,48 @@ def test_customer_activity_view_set_post_data_fail(
 
     assert data == {'spent_calories': [ErrorDetail(string='Ensure this value is greater than or equal to 1.',
                                                    code='min_value')]}
+
+
+@pytest.mark.django_db
+def test_customer_activity_summarize_existing_data_ok(
+        authenticated_client,
+):
+    """
+    Testing summarizing existing data for a chosen day.
+    """
+    customer = Customer.objects.first()
+
+    CustomerActivity.objects.create(
+        customer=customer,
+        date_add="2023-09-01T17:22:10Z",
+        spent_calories=25,
+    )
+    CustomerActivity.objects.create(
+        customer=customer,
+        date_add="2023-09-01T17:25:10Z",
+        spent_calories=10,
+    )
+
+    response = authenticated_client.get("/api/activities-list/?date=2023-09-01&pk=1")
+    data = response.data
+
+    assert data["total_calories"] == 35
+    assert data["records"] == [
+        OrderedDict([('id', 1), ('date_add', '2023-09-01T17:22:10Z'), ('spent_calories', 25)]),
+        OrderedDict([('id', 2), ('date_add', '2023-09-01T17:25:10Z'), ('spent_calories', 10)])
+    ]
+
+
+@pytest.mark.django_db
+def test_customer_activity_summarize_existing_data_fail(
+        authenticated_client,
+):
+    """
+    Testing if Customer gets a proper error if Customer has no existing data for a chosen day.
+    """
+
+    response = authenticated_client.get("/api/activities-list/?date=2023-09-01&pk=1")
+    data = response.data
+
+    assert data == {"error": "No added activities for the chosen date"}
+    assert response.status_code == 404

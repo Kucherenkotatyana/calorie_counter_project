@@ -1,5 +1,6 @@
 from Calorie_counter.routers import OptionalSlashRouter
-from activity.views import CustomerActivityViewSet
+from activity.views import CustomerActivityViewSet, CustomerActivitySummarizeData
+from django.urls import path
 
 
 router = OptionalSlashRouter()
@@ -9,4 +10,6 @@ router.register(r'activities', CustomerActivityViewSet, basename='activity')
 # Update: HTTP PUT/PATCH to /activities/<pk>/
 # Delete: HTTP DELETE to /activities/<pk>/
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path('activities-list/', CustomerActivitySummarizeData.as_view(), name='activities-list'),
+]
