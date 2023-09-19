@@ -127,4 +127,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.Customer'
 
-NUTRITION_API_KEY = os.getenv('NUTRITION_API_KEY')
+NUTRITION_API_KEY = os.getenv('NUTRITION_API_KEY', 'test_api_key')
