@@ -1,14 +1,12 @@
-from services.product_finder import ProductFinder
-
 from django.shortcuts import get_object_or_404
-
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
+from services.nutrition import ProductNotFoundException
 from .serializers import MealSerializer
-
+from services.product_finder import ProductFinder
 from users.models import Customer
 
 
@@ -35,18 +33,29 @@ class MealView(APIView):
             )
 
         product_data = request.data
-        if 'product_name' in product_data:
-            product_calories = self.get_product_calories(product_data)
-        else:
+
+        if 'product_name' not in product_data:
             return Response(
-                {"error": "Something was missed in your request. Check if it has: 'date_add', "
-                          "'meal_type', 'product_name' and 'portion_size' arguments."},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": ("Something was missed in your request. Check if it has: "
+                              "'date_add', 'meal_type', 'product_name' and 'portion_size' arguments."),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            response_data = self.calculate_and_create_responser(product_data, product_calories)
-        except:
+            product_calories = self.get_product_calories(product_data)
+        except ProductNotFoundException as e:
+            return Response(
+                {
+                    "error": str(e),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            response_data = self.calculate_and_create_response(product_data, product_calories)
+        except (KeyError, Exception):
             return Response(
                 {"error": "Something was missed in your request. Check if it has: 'date_add', "
                           "'meal_type', 'product_name' and 'portion_size' arguments."},
@@ -64,7 +73,7 @@ class MealView(APIView):
 
         return calories
 
-    def calculate_and_create_responser(self, product_data, product_calories):
+    def calculate_and_create_response(self, product_data, product_calories):
 
         date_add = product_data['date_add']
         meal_type = product_data['meal_type']
