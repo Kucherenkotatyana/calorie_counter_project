@@ -42,6 +42,7 @@ def test_product_finder_find_in_api_client_ok(
 
     created_product = Product.objects.first()
 
+    mock_nutrition_api_client_instance.get_single_product_calories.assert_called_with("test_product")
     assert result == mock_calories
     assert created_product.name == "test_product"
     assert created_product.calories == 33.3
@@ -68,5 +69,6 @@ def test_product_finder_find_in_api_client_not_found(
 
     created_product = Product.objects.first()
 
+    mock_nutrition_api_client_instance.get_single_product_calories.assert_called_with("test_product")
     assert str(expected_response.value) == str(InvalidProductException('Invalid given product.'))
     assert created_product is None
