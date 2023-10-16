@@ -44,7 +44,7 @@ class MealView(APIView):
             )
 
         try:
-            product_calories = self.get_product_calories(product_data)
+            product_calories = self._get_product_calories(product_data)
         except ProductNotFoundException as e:
             return Response(
                 {
@@ -54,26 +54,26 @@ class MealView(APIView):
             )
 
         try:
-            response_data = self.calculate_and_create_response(product_data, product_calories)
-        except (KeyError, Exception):
+            response_data = self._calculate_and_create_response(product_data, product_calories)
+        except (KeyError, Exception) as e:
             return Response(
-                {"error": "Something was missed in your request. Check if it has: 'date_add', "
-                          "'meal_type', 'product_name' and 'portion_size' arguments."},
+                {"error": f"{e}. Something was missed in your request. Check if it has: 'date_add', "
+                          f"'meal_type', 'product_name' and 'portion_size' arguments."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        self.create_meal(response_data, request)
+        self._create_meal(response_data, request)
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def get_product_calories(self, product_data):
+    def _get_product_calories(self, product_data):
 
         product_finder = ProductFinder()
-        calories = product_finder.finder(product_data)
+        calories = product_finder.find(product_data)
 
         return calories
 
-    def calculate_and_create_response(self, product_data, product_calories):
+    def _calculate_and_create_response(self, product_data, product_calories):
 
         date_add = product_data['date_add']
         meal_type = product_data['meal_type']
@@ -91,7 +91,7 @@ class MealView(APIView):
 
         return response_data
 
-    def create_meal(self, response_data, request):
+    def _create_meal(self, response_data, request):
         customer = request.user
         serializer = MealSerializer(data=response_data, context={"user": customer})
 

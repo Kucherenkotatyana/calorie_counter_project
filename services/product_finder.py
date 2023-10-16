@@ -1,7 +1,7 @@
 from product.models import Product
 from product.serializers import ProductSerializer
 
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 from .nutrition import NutritionAPIClient
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,13 +11,9 @@ class InvalidProductException(Exception):
     pass
 
 
-class NoSuchProductInAPIDatabase(Exception):
-    pass
-
-
 class ProductFinder:
 
-    def finder(self, data: Dict[str, Any]):
+    def find(self, data: Dict[str, Any]):
         given_product = data['product_name']
 
         database_result = self.search_in_database(given_product)
@@ -56,4 +52,3 @@ class ProductFinder:
             serializer.save()
         else:
             raise InvalidProductException("Invalid given product.")
-
