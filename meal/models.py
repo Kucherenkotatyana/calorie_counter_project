@@ -21,8 +21,8 @@ class Meal(models.Model):
     )
     product_name = models.CharField(max_length=50)
     portion_size = models.IntegerField()
-    total_calories = models.FloatField()
+    portion_calories = models.FloatField()
 
     def __str__(self):
         return (f"{self.user} ate {self.portion_size}g/ml of {self.product_name} for {self.meal_type} "
-                f"at {self.date_add}. Calories in the portion - {self.total_calories}.")
+                f"at {self.date_add}. Calories in the portion - {self.portion_calories}.")
