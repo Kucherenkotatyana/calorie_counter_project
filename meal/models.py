@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from users.models import Customer
 
 
@@ -20,7 +21,7 @@ class Meal(models.Model):
         default=BREAKFAST
     )
     product_name = models.CharField(max_length=50)
-    portion_size = models.IntegerField()
+    portion_size = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     portion_calories = models.FloatField()
 
     def __str__(self):

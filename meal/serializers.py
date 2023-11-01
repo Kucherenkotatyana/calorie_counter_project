@@ -21,3 +21,9 @@ class MealSerializer(serializers.ModelSerializer):
         )
         meal_note.save()
         return meal_note
+
+
+class MealUpdateSerializer(MealSerializer):
+
+    class Meta:
+        read_only_fields = ['id', 'date_add', 'product_name', 'portion_calories']
