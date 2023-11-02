@@ -20,15 +20,15 @@ def test_meal_view_get_product_calories_ok(
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         meal_type="LU",
         product_name="watermelon",
         portion_size=100,
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -36,7 +36,7 @@ def test_meal_view_get_product_calories_ok(
     meal_created = Meal.objects.first()
 
     assert response.status_code == 201
-    assert meal_created.user.id == customer_id
+    assert meal_created.user.id == 1
     assert meal_created.date_add.strftime('%Y-%m-%dT%H:%M:%SZ') == product_data["date_add"]
     assert meal_created.meal_type == product_data["meal_type"]
     assert meal_created.product_name == product_data["product_name"]
@@ -56,15 +56,15 @@ def test_meal_view_get_product_calories_product_not_found_exception(
     mock_get_product_calories.side_effect = serializers.ValidationError({"error": "test error"})
 
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         meal_type="LU",
         product_name="abracadabra",
         portion_size=100,
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -83,7 +83,7 @@ def test_meal_view_get_product_calories_no_customer(
     customer_id = 150
 
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data={},
         format='json',
     )
@@ -99,11 +99,12 @@ def test_meal_view_get_product_calories_wrong_customer(
     """
     Testing if the view returns a proper error while passing a foreign customer id.
     """
-    customer_id = 2
 
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
-        data={},
+        f"/api/meal/add/",
+        data={
+            "customer": 2,
+        },
         format='json',
     )
 
@@ -119,15 +120,14 @@ def test_meal_view_get_product_calories_no_product_name(
     Testing if the view returns a proper error if there's no product_name in request.
     """
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         meal_type="LU",
         portion_size=100,
     )
 
-    customer_id = 1
-
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -152,14 +152,14 @@ def test_meal_view_get_product_calories_missed_portion_size(
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         meal_type="LU",
         product_name="watermelon",
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -184,14 +184,14 @@ def test_meal_view_get_product_calories_missed_meal_type(
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         product_name="watermelon",
         portion_size=100,
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -216,14 +216,14 @@ def test_meal_view_get_product_calories_missed_date_add(
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         meal_type="LU",
         product_name="watermelon",
         portion_size=100,
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -248,15 +248,15 @@ def test_meal_view_create_meal_invalid_date_add_for_serializer(
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         date_add="test",
         meal_type="LU",
         product_name="watermelon",
         portion_size=100,
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -281,15 +281,15 @@ def test_meal_view_create_meal_invalid_meal_type_for_serializer(
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         meal_type="test",
         product_name="watermelon",
         portion_size=100,
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -312,15 +312,15 @@ def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_string
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         meal_type="DI",
         product_name="watermelon",
         portion_size="test",
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )
@@ -345,15 +345,15 @@ def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_float(
     mock_get_product_calories.return_value = 5
 
     product_data = dict(
+        customer=1,
         date_add="2023-10-11T13:35:10Z",
         meal_type="DI",
         product_name="watermelon",
         portion_size=55.5,
     )
 
-    customer_id = 1  # id of the authenticated_client
     response = authenticated_client.post(
-        f"/api/meal/add/{customer_id}/",
+        f"/api/meal/add/",
         data=product_data,
         format='json',
     )

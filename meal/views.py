@@ -26,8 +26,8 @@ class InvalidPassedData(Exception):
 class MealView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk):
-        customer = get_object_or_404(Customer, pk=pk)
+    def post(self, request):
+        customer = get_object_or_404(Customer, pk=request.data.get("customer"))
 
         if request.user != customer:
             return Response(
