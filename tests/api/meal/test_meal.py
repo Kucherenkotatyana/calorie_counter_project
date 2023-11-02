@@ -1,26 +1,23 @@
 import pytest
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from rest_framework.exceptions import ErrorDetail
+from rest_framework import serializers
 
-from meal.views import MealView, InvalidPassedData, InvalidSerializedData, ProductNotFoundException
+from meal.views import ProductNotFoundException
 from meal.models import Meal
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_ok(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the view works properly with valid data.
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         date_add="2023-10-11T13:35:10Z",
@@ -47,18 +44,16 @@ def test_meal_view_get_product_calories_ok(
     assert meal_created.portion_calories == 5.0
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_product_not_found_exception(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the view returns a proper error while passing nonexistent product name.
     """
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.side_effect = ProductNotFoundException("test error")
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.side_effect = serializers.ValidationError({"error": "test error"})
 
     product_data = dict(
         date_add="2023-10-11T13:35:10Z",
@@ -145,20 +140,16 @@ def test_meal_view_get_product_calories_no_product_name(
     }
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_missed_portion_size(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the view returns a proper error if there's no portion_size in request.
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         date_add="2023-10-11T13:35:10Z",
@@ -181,20 +172,16 @@ def test_meal_view_get_product_calories_missed_portion_size(
     }
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_missed_meal_type(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the view returns a proper error if there's no meal_type in request.
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         date_add="2023-10-11T13:35:10Z",
@@ -217,20 +204,16 @@ def test_meal_view_get_product_calories_missed_meal_type(
     }
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_missed_date_add(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the view returns a proper error if there's no date_add in request.
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         meal_type="LU",
@@ -253,20 +236,16 @@ def test_meal_view_get_product_calories_missed_date_add(
     }
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_date_add_for_serializer(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the serializer returns a proper error while passing invalid date_add value.
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         date_add="test",
@@ -290,20 +269,16 @@ def test_meal_view_create_meal_invalid_date_add_for_serializer(
     }
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_meal_type_for_serializer(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the serializer returns a proper error while passing invalid meal_type value.
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         date_add="2023-10-11T13:35:10Z",
@@ -325,20 +300,16 @@ def test_meal_view_create_meal_invalid_meal_type_for_serializer(
     }
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_string(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the serializer returns a proper error while passing string inside portion_size (int was expected).
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         date_add="2023-10-11T13:35:10Z",
@@ -362,20 +333,16 @@ def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_string
     }
 
 
-@patch("meal.serializers.ProductFinder")
+@patch("meal.serializers.get_product_calories")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_float(
-        mock_product_finder_class,
+        mock_get_product_calories,
         authenticated_client,
 ):
     """
     Testing if the serializer returns a proper error while passing float inside portion_size (int was expected).
     """
-    mock_calories = 5
-
-    mock_product_finder_instance = Mock()
-    mock_product_finder_instance.find.return_value = mock_calories
-    mock_product_finder_class.return_value = mock_product_finder_instance
+    mock_get_product_calories.return_value = 5
 
     product_data = dict(
         date_add="2023-10-11T13:35:10Z",

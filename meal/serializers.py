@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from .models import Meal
 
-from services.nutrition import ProductNotFoundException
-from services.product_finder import ProductFinder
+from meal.utils import get_product_calories
 
 
 class MealSerializer(serializers.ModelSerializer):
@@ -25,7 +24,7 @@ class MealSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['user']  # Get the current authenticated user
 
-        product_calories = self._get_product_calories(validated_data)
+        product_calories = get_product_calories(validated_data)
 
         meal = Meal(
             user=user,
@@ -38,16 +37,23 @@ class MealSerializer(serializers.ModelSerializer):
         meal.save()
         return meal
 
-    def _get_product_calories(self, product_data):
-        try:
-            product_finder = ProductFinder()
-            calories = product_finder.find(product_data)
-            return calories
-        except ProductNotFoundException as e:
-            raise serializers.ValidationError({"error": str(e)})
-
 
 class MealUpdateSerializer(MealSerializer):
 
-    class Meta:
-        read_only_fields = ['id', 'date_add', 'product_name', 'portion_calories']
+    class Meta(MealSerializer.Meta):
+        read_only_fields = [
+            'id',
+            'date_add',
+            'product_name',
+            'portion_calories',
+        ]
+
+    def update(self, instance, validated_data):
+        if 'portion_size' in validated_data:
+            product_calories = get_product_calories(
+                {"product_name": instance.product_name},
+            )
+            validated_data['portion_calories'] = int(
+                round(validated_data['portion_size'] / 100 * product_calories),
+            )
+        return super().update(instance, validated_data)
