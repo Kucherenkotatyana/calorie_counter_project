@@ -7,7 +7,7 @@ from meal.views import MealView, InvalidPassedData, InvalidSerializedData, Produ
 from meal.models import Meal
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_ok(
         mock_product_finder_class,
@@ -38,7 +38,7 @@ def test_meal_view_get_product_calories_ok(
 
     meal_created = Meal.objects.first()
 
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert meal_created.user.id == customer_id
     assert meal_created.date_add.strftime('%Y-%m-%dT%H:%M:%SZ') == product_data["date_add"]
     assert meal_created.meal_type == product_data["meal_type"]
@@ -47,7 +47,7 @@ def test_meal_view_get_product_calories_ok(
     assert meal_created.portion_calories == 5.0
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_product_not_found_exception(
         mock_product_finder_class,
@@ -138,12 +138,14 @@ def test_meal_view_get_product_calories_no_product_name(
     )
 
     assert response.status_code == 400
-    assert response.data == {'error': "Something was missed in your request. Check if it has: "
-                                      "'date_add', 'meal_type', 'product_name' and 'portion_size' "
-                                      "arguments."}
+    assert response.data == {
+        "product_name": [
+            "This field is required."
+        ]
+    }
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_missed_portion_size(
         mock_product_finder_class,
@@ -172,11 +174,14 @@ def test_meal_view_get_product_calories_missed_portion_size(
     )
 
     assert response.status_code == 400
-    assert response.data == {'error': "'portion_size'. Something was missed in your request. Check if it has: "
-                                      "'date_add', 'meal_type', 'product_name' and 'portion_size' arguments."}
+    assert response.data == {
+        "portion_size": [
+            "This field is required."
+        ]
+    }
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_missed_meal_type(
         mock_product_finder_class,
@@ -205,11 +210,14 @@ def test_meal_view_get_product_calories_missed_meal_type(
     )
 
     assert response.status_code == 400
-    assert response.data == {'error': "'meal_type'. Something was missed in your request. Check if it has: "
-                                      "'date_add', 'meal_type', 'product_name' and 'portion_size' arguments."}
+    assert response.data == {
+        "meal_type": [
+            "This field is required."
+        ]
+    }
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_get_product_calories_missed_date_add(
         mock_product_finder_class,
@@ -238,11 +246,14 @@ def test_meal_view_get_product_calories_missed_date_add(
     )
 
     assert response.status_code == 400
-    assert response.data == {'error': "'date_add'. Something was missed in your request. Check if it has: "
-                                      "'date_add', 'meal_type', 'product_name' and 'portion_size' arguments."}
+    assert response.data == {
+        "date_add": [
+            "This field is required."
+        ]
+    }
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_date_add_for_serializer(
         mock_product_finder_class,
@@ -279,7 +290,7 @@ def test_meal_view_create_meal_invalid_date_add_for_serializer(
     }
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_meal_type_for_serializer(
         mock_product_finder_class,
@@ -314,7 +325,7 @@ def test_meal_view_create_meal_invalid_meal_type_for_serializer(
     }
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_string(
         mock_product_finder_class,
@@ -345,12 +356,13 @@ def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_string
 
     assert response.status_code == 400
     assert response.data == {
-        'error': "unsupported operand type(s) for /: 'str' and 'int'. Something was missed in your request. "
-                 "Check if it has: 'date_add', 'meal_type', 'product_name' and 'portion_size' arguments."
+        "portion_size": [
+            "A valid integer is required."
+        ]
     }
 
 
-@patch("meal.views.ProductFinder")
+@patch("meal.serializers.ProductFinder")
 @pytest.mark.django_db
 def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_float(
         mock_product_finder_class,

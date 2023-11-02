@@ -17,8 +17,7 @@ class Meal(models.Model):
     date_add = models.DateTimeField()
     meal_type = models.CharField(
         max_length=2,
-        choices=MEAL_CHOICES,
-        default=BREAKFAST
+        choices=MEAL_CHOICES
     )
     product_name = models.CharField(max_length=50)
     portion_size = models.PositiveIntegerField(validators=[MinValueValidator(1)])
