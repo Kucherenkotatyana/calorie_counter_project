@@ -23,8 +23,9 @@ class MealSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['user']  # Get the current authenticated user
+        given_product = validated_data["product_name"]
 
-        product_calories = get_product_calories(validated_data)
+        product_calories = get_product_calories(given_product)
 
         meal = Meal(
             user=user,
@@ -49,10 +50,10 @@ class MealUpdateSerializer(MealSerializer):
         ]
 
     def update(self, instance, validated_data):
+        given_product = instance.product_name
+
         if 'portion_size' in validated_data:
-            product_calories = get_product_calories(
-                {"product_name": instance.product_name},
-            )
+            product_calories = get_product_calories(given_product)
             validated_data['portion_calories'] = int(
                 round(validated_data['portion_size'] / 100 * product_calories),
             )

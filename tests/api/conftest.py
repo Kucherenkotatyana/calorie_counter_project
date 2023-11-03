@@ -6,6 +6,22 @@ from users.models import Customer
 
 
 @pytest.fixture
+def meal_data(authenticated_client):
+    customer = Customer.objects.first()
+
+    product_data = dict(
+        user=customer,
+        date_add="2023-10-11T13:35:10Z",
+        meal_type="DI",
+        product_name="watermelon",
+        portion_size=55.5,
+        portion_calories=30.0
+    )
+
+    return product_data
+
+
+@pytest.fixture
 def activity_passed_data():
     passed_data = dict(
         date_add="2023-08-31T17:22:10Z",

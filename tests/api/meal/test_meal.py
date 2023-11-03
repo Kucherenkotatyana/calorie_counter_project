@@ -5,7 +5,10 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework import serializers
 
 from meal.views import ProductNotFoundException
+from meal.serializers import MealSerializer, MealUpdateSerializer
 from meal.models import Meal
+from users.models import Customer
+
 
 
 @patch("meal.serializers.get_product_calories")
@@ -80,7 +83,6 @@ def test_meal_view_get_product_calories_no_customer(
     """
     Testing if the view returns a proper error while passing nonexistent customer id.
     """
-    customer_id = 150
 
     response = authenticated_client.post(
         f"/api/meal/add/",
@@ -363,3 +365,290 @@ def test_meal_view_create_meal_invalid_portion_size_for_serializer_passed_float(
         'portion_size': [ErrorDetail(string='A valid integer is required.', code='invalid')]
     }
 
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_retrieve_destroy_view_get_product_details_ok(
+        mock_get_product_calories,
+        authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    response = authenticated_client.get(
+        f"/api/meal/1/"
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'id': 1,
+        'date_add': '2023-10-11T13:35:10Z',
+        'meal_type': 'DI',
+        'product_name': 'watermelon',
+        'portion_size': 55,
+        'portion_calories': 30.0
+    }
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_retrieve_destroy_view_get_product_details_forbidden(
+        mock_get_product_calories,
+        authenticated_client,
+        another_authenticated_client,
+        meal_data,
+):
+
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    response = another_authenticated_client.get(
+        f"/api/meal/1/"
+    )
+
+    assert response.status_code == 403
+    assert response.data == {
+        'detail': ErrorDetail(
+            string='You do not have permission to perform this action.',
+            code='permission_denied')
+    }
+
+
+@pytest.mark.django_db
+def test_meal_retrieve_destroy_view_get_product_details_not_found(
+        authenticated_client,
+):
+    response = authenticated_client.get(
+        f"/api/meal/1/"
+    )
+
+    assert response.status_code == 404
+    assert response.data == {
+        "detail": "Not found."
+    }
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_retrieve_destroy_view_delete_product_details_ok(
+        mock_get_product_calories,
+        authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    response = authenticated_client.delete(
+        f"/api/meal/1/"
+    )
+
+    assert response.status_code == 204
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_retrieve_destroy_view_delete_product_details_forbidden(
+        mock_get_product_calories,
+        authenticated_client,
+        another_authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    response = another_authenticated_client.delete(
+        f"/api/meal/1/"
+    )
+
+    assert response.status_code == 403
+    assert response.data == {
+        'detail': ErrorDetail(
+            string='You do not have permission to perform this action.',
+            code='permission_denied')
+    }
+
+
+@pytest.mark.django_db
+def test_meal_retrieve_destroy_view_delete_product_details_not_found(
+        authenticated_client,
+):
+    response = authenticated_client.delete(
+        f"/api/meal/1/"
+    )
+
+    assert response.status_code == 404
+    assert response.data == {
+        "detail": "Not found."
+    }
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_update_view_patch_product_details_ok(
+        mock_get_product_calories,
+        authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    patched_data = dict(
+        meal_type="DI",
+        portion_size=333
+    )
+
+    response = authenticated_client.patch(
+        f"/api/meal/update/1/",
+        data=patched_data,
+        format='json'
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'date_add': '2023-10-11T13:35:10Z',
+        'id': 1,
+        'meal_type': 'DI',
+        'portion_calories': 10.0,
+        'portion_size': 333,
+        'product_name': 'watermelon'
+    }
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_update_view_patch_product_details_odd_fields_ok(
+        mock_get_product_calories,
+        authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    patched_data = dict(
+        meal_type="LU",
+        portion_size=150,
+        product_name="abracadabra",
+        date_add="test_date",
+    )
+
+    response = authenticated_client.patch(
+        f"/api/meal/update/1/",
+        data=patched_data,
+        format='json'
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'date_add': '2023-10-11T13:35:10Z',
+        'id': 1,
+        'meal_type': 'LU',
+        'portion_calories': 4.0,
+        'portion_size': 150,
+        'product_name': 'watermelon'
+    }
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_update_view_patch_product_details_forbidden(
+        mock_get_product_calories,
+        authenticated_client,
+        another_authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    patched_data = dict(
+        meal_type="LU",
+        portion_size=150
+    )
+
+    response = another_authenticated_client.patch(
+        f"/api/meal/update/1/",
+        data=patched_data,
+        format='json'
+    )
+
+    assert response.status_code == 403
+    assert response.data == {'error': 'Action not allowed.'}
+
+
+@pytest.mark.django_db
+def test_meal_update_view_patch_product_details_not_found(
+        authenticated_client,
+):
+
+    patched_data = dict()
+
+    response = authenticated_client.patch(
+        f"/api/meal/update/1/",
+        data=patched_data,
+        format='json'
+    )
+
+    assert response.status_code == 404
+    assert response.data == {'detail': ErrorDetail(string='Not found.', code='not_found')}
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_update_view_patch_product_details_wrong_meal_type(
+        mock_get_product_calories,
+        authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    patched_data = dict(
+        meal_type="test",
+        portion_size=150,
+    )
+
+    response = authenticated_client.patch(
+        f"/api/meal/update/1/",
+        data=patched_data,
+        format='json'
+    )
+
+    assert response.status_code == 400
+    assert response.data == {
+        'meal_type': [ErrorDetail(string='"test" is not a valid choice.', code='invalid_choice')]
+    }
+
+
+@patch("meal.serializers.get_product_calories")
+@pytest.mark.django_db
+def test_meal_update_view_patch_product_details_wrong_portion_size_format(
+        mock_get_product_calories,
+        authenticated_client,
+        meal_data,
+):
+    mock_get_product_calories.return_value = 3
+
+    Meal.objects.create(**meal_data)
+
+    patched_data = dict(
+        portion_size="test",
+    )
+
+    response = authenticated_client.patch(
+        f"/api/meal/update/1/",
+        data=patched_data,
+        format='json'
+    )
+
+    assert response.status_code == 400
+    assert response.data == {
+        'portion_size': [ErrorDetail(string='A valid integer is required.', code='invalid')]
+    }

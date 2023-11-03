@@ -14,7 +14,7 @@ def test_product_finder_find_in_product_db():
     """
     Product.objects.create(name="test_product", calories=20.5)
 
-    test_product = {"product_name": "test_product"}
+    test_product = "test_product"
     product_finder = ProductFinder()
     result = product_finder.find(test_product)
 
@@ -36,7 +36,7 @@ def test_product_finder_find_in_api_client_ok(
     mock_nutrition_api_client_instance.get_single_product_calories.return_value = mock_calories
     mock_nutrition_api_client_class.return_value = mock_nutrition_api_client_instance
 
-    test_product = {"product_name": "test_product"}
+    test_product = "test_product"
     product_finder = ProductFinder()
     result = product_finder.find(test_product)
 
@@ -61,7 +61,7 @@ def test_product_finder_find_in_api_client_not_found(
     mock_nutrition_api_client_instance.get_single_product_calories.return_value = Exception
     mock_nutrition_api_client_class.return_value = mock_nutrition_api_client_instance
 
-    test_product = {"product_name": "test_product"}
+    test_product = "test_product"
     product_finder = ProductFinder()
 
     with pytest.raises(InvalidProductException) as expected_response:
