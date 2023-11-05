@@ -13,8 +13,7 @@ class InvalidProductException(Exception):
 
 class ProductFinder:
 
-    def find(self, data: Dict[str, Any]):
-        given_product = data['product_name']
+    def find(self, given_product):
 
         database_result = self.search_in_database(given_product)
 
