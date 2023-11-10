@@ -58,3 +58,22 @@ class MealUpdateSerializer(MealSerializer):
                 round(validated_data['portion_size'] / 100 * product_calories),
             )
         return super().update(instance, validated_data)
+
+
+# class MealReadSerializer(MealSerializer):
+#
+#     class Meta(MealSerializer.Meta):
+#         fields = [
+#             'id',
+#             'date_add',
+#             'product_name',
+#             'portion_size',
+#             'portion_calories',
+#         ]
+#         read_only_fields = [
+#             'id',
+#             'date_add',
+#             'product_name',
+#             'portion_size',
+#             'portion_calories',
+#         ]

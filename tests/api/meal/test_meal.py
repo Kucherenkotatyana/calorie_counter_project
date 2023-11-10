@@ -9,6 +9,8 @@ from meal.serializers import MealSerializer, MealUpdateSerializer
 from meal.models import Meal
 from users.models import Customer
 
+from datetime import datetime, timezone
+
 
 
 @patch("meal.serializers.get_product_calories")
@@ -651,4 +653,164 @@ def test_meal_update_view_patch_product_details_wrong_portion_size_format(
     assert response.status_code == 400
     assert response.data == {
         'portion_size': [ErrorDetail(string='A valid integer is required.', code='invalid')]
+    }
+
+
+@pytest.mark.django_db
+def test_meal_list_view_get_meals_has_meals_ok(
+        authenticated_client,
+        meal_data,
+        meal_data_2,
+        meal_data_3,
+):
+    Meal.objects.create(**meal_data)
+    Meal.objects.create(**meal_data_2)
+    Meal.objects.create(**meal_data_3)
+
+    response = authenticated_client.get(
+        f"/api/meal/listview/1/",
+        {"date_add": '2023-10-11'},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'breakfast': {
+            'total': 22,
+            'records': [
+                {
+                    'id': 2,
+                    'date_add': datetime(
+                        2023,
+                        10,
+                        11,
+                        13,
+                        35,
+                        10,
+                        tzinfo=timezone.utc),
+                    'product_name': 'coffee',
+                    'portion_size': 250,
+                    'portion_calories': 15.0},
+                {
+                    'id': 3,
+                    'date_add': datetime(
+                        2023,
+                        10,
+                        11,
+                        10,
+                        15,
+                        6,
+                        tzinfo=timezone.utc),
+                    'product_name': 'tomato',
+                    'portion_size': 100,
+                    'portion_calories': 7.0
+                }
+            ]
+        },
+        'lunch': {
+            'total': 0,
+            'records': []
+        },
+        'dinner': {
+            'total': 30,
+            'records': [
+                {
+                    'id': 1,
+                    'date_add': datetime(
+                        2023,
+                        10,
+                        11,
+                        13,
+                        35,
+                        10,
+                        tzinfo=timezone.utc),
+                    'product_name': 'watermelon',
+                    'portion_size': 55,
+                    'portion_calories': 30.0
+                }
+            ]
+        }
+    }
+
+
+@pytest.mark.django_db
+def test_meal_list_view_get_meals_no_meals_ok(
+        authenticated_client,
+):
+
+    response = authenticated_client.get(
+        f"/api/meal/listview/1/",
+        {"date_add": '2023-10-11'},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'breakfast': {
+            'records': [],
+            'total': 0
+        },
+        'dinner': {
+            'records': [],
+            'total': 0
+        },
+        'lunch': {
+            'records': [],
+            'total': 0}
+    }
+
+
+@pytest.mark.django_db
+def test_meal_list_view_get_meals_no_date_add_passed_ok(
+        authenticated_client,
+):
+
+    response = authenticated_client.get(
+        f"/api/meal/listview/1/",
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'breakfast': {
+            'records': [],
+            'total': 0
+        },
+        'dinner': {
+            'records': [],
+            'total': 0
+        },
+        'lunch': {
+            'records': [],
+            'total': 0}
+    }
+
+
+@pytest.mark.django_db
+def test_meal_list_view_get_meals_wrong_user(
+        authenticated_client,
+        another_authenticated_client
+):
+
+    response = authenticated_client.get(
+        f"/api/meal/listview/2/",
+    )
+
+    assert response.status_code == 403
+    assert response.data == {'error': 'Action not allowed.'}
+
+
+@pytest.mark.django_db
+def test_meal_list_view_get_meals_wrong_date_format(
+        authenticated_client,
+):
+
+    response = authenticated_client.get(
+        f"/api/meal/listview/1/",
+        {"date_add": '2023-21-11'},
+        format='json',
+    )
+
+    assert response.status_code == 403
+    assert response.data == {
+        'error': 'Wrong date format! YYYY-MM-DD is needed.'
     }

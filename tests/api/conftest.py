@@ -22,6 +22,38 @@ def meal_data(authenticated_client):
 
 
 @pytest.fixture
+def meal_data_2(authenticated_client):
+    customer = Customer.objects.first()
+
+    product_data = dict(
+        user=customer,
+        date_add="2023-10-11T13:35:10Z",
+        meal_type="BR",
+        product_name="coffee",
+        portion_size=250,
+        portion_calories=15.0
+    )
+
+    return product_data
+
+
+@pytest.fixture
+def meal_data_3(authenticated_client):
+    customer = Customer.objects.first()
+
+    product_data = dict(
+        user=customer,
+        date_add="2023-10-11T10:15:06Z",
+        meal_type="BR",
+        product_name="tomato",
+        portion_size=100,
+        portion_calories=7.0
+    )
+
+    return product_data
+
+
+@pytest.fixture
 def activity_passed_data():
     passed_data = dict(
         date_add="2023-08-31T17:22:10Z",
