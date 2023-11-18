@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'activity',
     'meal',
     'product',
+    'customer_profile',
 ]
 
 MIDDLEWARE = [
