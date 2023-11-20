@@ -3,15 +3,6 @@ from rest_framework.serializers import ValidationError
 from customer_profile.models import CustomerProfile
 
 
-def validate(customer):
-    try:
-        CustomerProfile.objects.get(customer=customer)
-    except CustomerProfile.DoesNotExist:
-        return
-    else:
-        raise ValidationError(['Customer already has a target'])
-
-
 class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
@@ -20,14 +11,20 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         customer = self.context['user']
 
-        validate(customer)
-
         customer_profile_note = CustomerProfile(
             customer=customer,
             target=validated_data['target'],
         )
         customer_profile_note.save()
         return customer_profile_note
+
+    def validate(self, validated_data):
+        try:
+            CustomerProfile.objects.get(customer=self.context['user'])
+        except CustomerProfile.DoesNotExist:
+            return validated_data
+        else:
+            raise ValidationError(['Customer already has a target'])
 
 
 class CustomerProfileUpdateSerializer(serializers.ModelSerializer):

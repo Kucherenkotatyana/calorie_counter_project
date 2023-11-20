@@ -26,8 +26,8 @@ class CustomerProfileView(APIView):
 
         try:
             current_profile = get_object_or_404(CustomerProfile, customer=pk)
-            response_data = self.create_response(current_profile)
-            return Response(response_data, status=status.HTTP_200_OK)
+            serialised_profile = CustomerProfileSerializer(current_profile)
+            return Response(serialised_profile.data, status=status.HTTP_200_OK)
         except (ValueError, Exception) as e:
             return Response(
                 {f"{e} A valid customer's id is required!"},
@@ -81,7 +81,10 @@ class CustomerProfileView(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response({"You need to pass a new target to update!"})
+            return Response(
+                {"You need to pass a new target to update!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def delete(self, request, pk):
         customer = get_object_or_404(Customer, pk=pk)
@@ -102,12 +105,3 @@ class CustomerProfileView(APIView):
 
         current_profile.delete()
         return Response({"Deleted."}, status=status.HTTP_204_NO_CONTENT)
-
-    def create_response(self, current_profile):
-
-        response_data = {
-            "id": current_profile.id,
-            "target": current_profile.target
-        }
-
-        return response_data
