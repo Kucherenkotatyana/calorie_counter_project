@@ -37,5 +37,13 @@ class CustomerProfileUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        if 'target' in validated_data:
-            return super().update(instance, validated_data)
+        return super().update(instance, validated_data)
+
+    def validate(self, validated_data):
+
+        if validated_data and 'target' in validated_data:
+            return validated_data
+        else:
+            raise ValueError(
+                'Invalid data was passed to CustomerProfileUpdateSerializer'
+            )

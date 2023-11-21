@@ -30,8 +30,8 @@ class CustomerProfileView(APIView):
             return Response(serialised_profile.data, status=status.HTTP_200_OK)
         except (ValueError, Exception) as e:
             return Response(
-                {f"{e} A valid customer's id is required!"},
-                status=status.HTTP_400_BAD_REQUEST
+                {f"{e} Check if you passed a valid customer id."},
+                status=status.HTTP_404_NOT_FOUND
             )
 
     def post(self, request, pk):
@@ -67,22 +67,22 @@ class CustomerProfileView(APIView):
         except (ValueError, Exception) as e:
             return Response(
                 {f"{e} You can change only existing profile!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
-        if request.data:
-            serializer = CustomerProfileUpdateSerializer(
-                current_profile,
-                data=request.data,
-                partial=True,
-            )
+        serializer = CustomerProfileUpdateSerializer(
+            current_profile,
+            data=request.data,
+            partial=True,
+        )
+
+        try:
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-
             return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
+        except (ValueError, Exception) as e:
             return Response(
-                {"You need to pass a new target to update!"},
+                {f"{e}. You need to pass a valid integer to update your target!"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -100,7 +100,7 @@ class CustomerProfileView(APIView):
         except (ValueError, Exception) as e:
             return Response(
                 {f"{e} No such profile data was found!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
         current_profile.delete()
