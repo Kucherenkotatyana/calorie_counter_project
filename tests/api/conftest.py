@@ -3,7 +3,20 @@ import pytest
 from rest_framework.test import APIClient
 
 from users.models import Customer
+from customer_profile.models import CustomerProfile
 
+
+@pytest.fixture
+def customer_profile_created(authenticated_client):
+    customer = Customer.objects.first()
+
+    customer_profile_data = dict(
+        customer=customer,
+        target=1500,
+    )
+
+    created_profile = CustomerProfile.objects.create(**customer_profile_data)
+    return created_profile
 
 @pytest.fixture
 def meal_data(authenticated_client):
