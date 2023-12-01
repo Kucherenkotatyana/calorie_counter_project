@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from django.db import models
+from django.db.models import Sum
 
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -151,37 +151,34 @@ class DailyStatisticsView(APIView):
     def get_total_calories(self, customer_id):
         given_date = self.get_date_from_request()
 
-        customer_meals = Meal.objects.filter(
+        total_calories = Meal.objects.filter(
             user=customer_id,
             date_add__year=given_date.year,
             date_add__month=given_date.month,
             date_add__day=given_date.day,
-        )
+        ).aggregate(
+            Sum('portion_calories'),
+        )['portion_calories__sum']
 
-        # total_calories = customer_meals.aggregate(
-        #     total_calories=models.Sum('portion_calories') or 0
-        # )
-
-        total_calories = 0
-
-        for meal in customer_meals:
-            total_calories += int(meal.portion_calories)
-        return total_calories
+        if total_calories:
+            return int(total_calories)
+        else:
+            return 0
 
     def get_total_activity(self, customer_id):
         given_date = self.get_date_from_request()
-        activities = CustomerActivity.objects.filter(
-            customer=customer_id,
-            date_add__date=given_date
-        )
-        # total_activity = activities.aggregate(
-        #     total_calories=models.Sum('spent_calories') or 0
-        # )
 
-        total_activity = 0
-        for activity in activities:
-            total_activity += int(activity.spent_calories)
-        return total_activity
+        total_activity = CustomerActivity.objects.filter(
+            customer=customer_id,
+            date_add__date=given_date,
+        ).aggregate(
+            Sum('spent_calories'),
+        )['spent_calories__sum']
+
+        if total_activity:
+            return int(total_activity)
+        else:
+            return 0
 
     def get_date_from_request(self):
         input_date_add = self.request.query_params.get('date_add', None)
@@ -201,8 +198,11 @@ class DailyStatisticsView(APIView):
         return calories_including_activity
 
     def get_percentage(self, calories_including_activity, target):
-        percentage = int(calories_including_activity*100/target)
-        return percentage
+        if type(target) is int:
+            percentage = int(calories_including_activity*100/target)
+            return percentage
+        else:
+            return 0
 
     def create_response(
             self,
