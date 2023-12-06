@@ -351,3 +351,102 @@ def test_customer_profile_view_delete_not_found(
         'No CustomerProfile matches the given query. '
         'No such profile data was found!'
     }
+
+
+@pytest.mark.django_db
+def test_daily_statistics_view_get_specifying_date_ok(
+        authenticated_client,
+        meal_data_created,
+        meal_data_created_2,
+        customer_profile_created,
+        activity_data_created,
+):
+    """
+    Testing if the customer gets a proper data specifying date_add where
+    activity, meals and target already exsist.
+    """
+    response = authenticated_client.get(
+        f"/api/customer-daily-statistics/?date_add=2023-12-05"
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'target': 1500,
+        'total_calories': 60,
+        'total_activity': 400,
+        'calories_including_activity': -340,
+        'percentage': -22
+    }
+
+
+@pytest.mark.django_db
+def test_daily_statistics_view_get_with_no_date_ok(
+        authenticated_client,
+        meal_data_created,
+        meal_data_created_2,
+        customer_profile_created,
+        activity_data_created,
+):
+    """
+    Testing if the customer gets a proper data without specifying
+    date_add (data for current date returns instead).
+    """
+    response = authenticated_client.get(
+        f"/api/customer-daily-statistics/"
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'target': 1500,
+        'total_calories': 0,
+        'total_activity': 0,
+        'calories_including_activity': 0,
+        'percentage': 0
+    }
+
+
+@pytest.mark.django_db
+def test_daily_statistics_view_get_with_no_profile_ok(
+        authenticated_client,
+        meal_data_created,
+        meal_data_created_2,
+        activity_data_created,
+):
+    """
+    Testing in the customer without customer_profile gets a proper data.
+    """
+    response = authenticated_client.get(
+        f"/api/customer-daily-statistics/?date_add=2023-12-05"
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'target': "target wasn't set",
+        'total_calories': 60,
+        'total_activity': 400,
+        'calories_including_activity': -340,
+        'percentage': 0
+    }
+
+
+@pytest.mark.django_db
+def test_daily_statistics_view_invalid_date_add(
+        authenticated_client,
+        customer_profile_created,
+):
+    """
+    Testing in the customer gets a proper data while passing wrong
+    date_add format (data for current date returns instead).
+    """
+    response = authenticated_client.get(
+        f"/api/customer-daily-statistics/?date_add=24-12-ad"
+    )
+
+    assert response.status_code == 200
+    assert response.data == {
+        'target': 1500,
+        'total_calories': 0,
+        'total_activity': 0,
+        'calories_including_activity': 0,
+        'percentage': 0
+    }

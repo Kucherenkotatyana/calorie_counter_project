@@ -184,10 +184,16 @@ class DailyStatisticsView(APIView):
         input_date_add = self.request.query_params.get('date_add', None)
 
         if input_date_add:
-            given_date = datetime.strptime(input_date_add, '%Y-%m-%d')
+            try:
+                given_date = datetime.strptime(
+                    input_date_add,
+                    '%Y-%m-%d'
+                )
+            except (ValueError, Exception):
+                return date.today()
+            return given_date
         else:
-            given_date = date.today()
-        return given_date
+            return date.today()
 
     def get_calories_including_activity(
             self,
