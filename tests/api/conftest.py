@@ -3,6 +3,8 @@ import pytest
 from rest_framework.test import APIClient
 
 from users.models import Customer
+from meal.models import Meal
+from activity.models import CustomerActivity
 from customer_profile.models import CustomerProfile
 
 
@@ -17,6 +19,41 @@ def customer_profile_created(authenticated_client):
 
     created_profile = CustomerProfile.objects.create(**customer_profile_data)
     return created_profile
+
+
+@pytest.fixture
+def meal_data_created(authenticated_client):
+    customer = Customer.objects.first()
+
+    product_data = dict(
+        user=customer,
+        date_add="2023-12-05T13:13:10Z",
+        meal_type="DI",
+        product_name="watermelon",
+        portion_size=55.5,
+        portion_calories=30.0
+    )
+
+    created_meal_data = Meal.objects.create(**product_data)
+    return created_meal_data
+
+
+@pytest.fixture
+def meal_data_created_2(authenticated_client):
+    customer = Customer.objects.first()
+
+    product_data = dict(
+        user=customer,
+        date_add="2023-12-05T13:16:10Z",
+        meal_type="DI",
+        product_name="watermelon",
+        portion_size=55.5,
+        portion_calories=30.0
+    )
+
+    created_meal_data_2 = Meal.objects.create(**product_data)
+    return created_meal_data_2
+
 
 @pytest.fixture
 def meal_data(authenticated_client):
@@ -73,6 +110,21 @@ def activity_passed_data():
         spent_calories=25,
     )
     return passed_data
+
+
+@pytest.fixture
+def activity_data_created(authenticated_client):
+    customer = Customer.objects.first()
+
+    passed_data = dict(
+        date_add="2023-12-05T10:22:10Z",
+        spent_calories=400,
+    )
+    created_activity = CustomerActivity.objects.create(
+        customer=customer,
+        **passed_data,
+    )
+    return created_activity
 
 
 @pytest.fixture
