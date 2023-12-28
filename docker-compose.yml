@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+#    entrypoint: python3 manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+      - db_data_tmp:/run/mysqld
+
+  db:
+    image: mysql:8.0
+    env_file:
+      - ./.env
+    volumes:
+      - db_data:/var/lib/mysql
+      - db_data_tmp:/var/run/mysqld
+    ports:
+      - "3308:3306"
+
+volumes:
+  db_data:
+  db_data_tmp:
