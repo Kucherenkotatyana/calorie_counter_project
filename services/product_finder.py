@@ -1,8 +1,6 @@
 from product.models import Product
 from product.serializers import ProductSerializer
 
-from typing import Dict, Any
-
 from .nutrition import NutritionAPIClient
 from django.core.exceptions import ObjectDoesNotExist
 

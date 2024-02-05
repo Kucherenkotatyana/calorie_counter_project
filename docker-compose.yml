@@ -8,9 +8,42 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-#    entrypoint: python3 manage.py runserver 0.0.0.0:8000
     depends_on:
+      - redis
       - db
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+      - db_data_tmp:/run/mysqld
+
+  redis:
+    image: redis:7.2.3
+    ports:
+      - "6379:6379"
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: "celery -A Calorie_counter.celery_app worker -l info"
+    depends_on:
+      - web
+      - redis
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+      - db_data_tmp:/run/mysqld
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: "celery -A Calorie_counter.celery_app beat -l info -s /tmp/celerybeat-schedule"
+    depends_on:
+      - web
+      - redis
     env_file:
       - ./.env
     volumes:

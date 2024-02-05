@@ -4,3 +4,6 @@ pytest==7.4.0
 pytest-django==4.5.2
 requests==2.31.0
 mysqlclient==2.1.1
+celery==5.2.7
+django-celery-beat==2.5.0
+redis==5.0.1

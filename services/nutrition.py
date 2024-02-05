@@ -22,7 +22,7 @@ class NutritionAPIClient:
         return product_calories
 
     def get_multiple_products_calories(self, product_names: List[str]) -> Dict[str, float]:
-        product_names = ', '.join(product_names)
+        product_names = ' and '.join(product_names)
 
         data = self._get_calories(product_names)
 

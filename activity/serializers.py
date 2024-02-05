@@ -8,7 +8,7 @@ class CustomerActivitySerializer(serializers.ModelSerializer):
         fields = ['id', 'date_add', 'spent_calories']
 
     def create(self, validated_data):
-        customer = self.context['request'].user  # Get the current authenticated user
+        customer = self.context['request'].user    # Get the current authenticated user
 
         activity_note = CustomerActivity(
             customer=customer,

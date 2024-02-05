@@ -22,7 +22,7 @@ class MealSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        user = self.context['user']  # Get the current authenticated user
+        user = self.context['user']    # Get the current authenticated user
         given_product = validated_data["product_name"]
 
         product_calories = get_product_calories(given_product)
@@ -58,22 +58,3 @@ class MealUpdateSerializer(MealSerializer):
                 round(validated_data['portion_size'] / 100 * product_calories),
             )
         return super().update(instance, validated_data)
-
-
-# class MealReadSerializer(MealSerializer):
-#
-#     class Meta(MealSerializer.Meta):
-#         fields = [
-#             'id',
-#             'date_add',
-#             'product_name',
-#             'portion_size',
-#             'portion_calories',
-#         ]
-#         read_only_fields = [
-#             'id',
-#             'date_add',
-#             'product_name',
-#             'portion_size',
-#             'portion_calories',
-#         ]

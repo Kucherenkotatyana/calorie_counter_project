@@ -28,6 +28,7 @@ def test_customer_profile_view_post_ok(
     assert response.status_code == 201
     assert response.data == {'id': 1, 'target': 1500}
 
+
 @pytest.mark.django_db
 def test_customer_profile_view_post_nonexistent_customer(
         authenticated_client,

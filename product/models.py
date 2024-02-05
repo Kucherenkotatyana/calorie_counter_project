@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     calories = models.FloatField()
 
     def __str__(self):
